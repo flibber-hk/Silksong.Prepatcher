@@ -1,0 +1,69 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <!-- 
+  Imports silksong path properties only if present in order to allow CI builds. The file should be gitignored.
+  If you are checking out from git and need to create a new one, you can use `dotnet new silksongpath` to generate one.
+  -->
+  <Import Condition="Exists('../SilksongPath.props')" Project="../SilksongPath.props" />
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <EnableNETAnalyzers>True</EnableNETAnalyzers>
+    <AnalysisMode>recommended</AnalysisMode>
+    <!-- Ignore warning about processor architecture mismatch with PlayMaker ConditionalExpression -->
+    <NoWarn>$(NoWarn);MSB3270</NoWarn>
+    <RestorePackagesWithLockFile>True</RestorePackagesWithLockFile>
+    <!-- CI environment variable is automatically set by GitHub actions -->
+    <RestoreLockedMode Condition="'$(CI)' == 'true'">True</RestoreLockedMode>
+    <!--Allow access of private members at runtime.-->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!--Shortens and anonymizes paths in debug symbols relative to the project directory. Breakpoints will not work, however.-->
+    <PathMap Condition="'$(Configuration)' == 'Release'">$(MSBuildProjectDirectory)=/</PathMap>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
+    <RepositoryUrl>https://github.com/silksong-modding/PrepatcherPlugin</RepositoryUrl>
+    <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..'))</RepoRoot>
+    <ThunderstoreDir>$(RepoRoot)/thunderstore</ThunderstoreDir>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="BepInEx.Analyzers" Version="1.0.8" PrivateAssets="all" />
+    <PackageReference Include="BepInEx.Core" Version="5.4.21" />
+    <PackageReference Include="HarmonyX" Version="2.9.0" />
+    <PackageReference Include="Hamunii.BepInEx.AutoPlugin" Version="2.0.1" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Unity.Analyzers" Version="1.25.0" PrivateAssets="all" />
+    <PackageReference
+      Include="UnityEngine.Modules"
+      Version="6000.0.50"
+      IncludeAssets="compile"
+    />
+    <!--If you're unable resolve this dependency, check that you're using the nuget v3 package feed instead of v2.-->
+    <PackageReference
+      Include="Silksong.GameLibs"
+      Version="*-*"
+      PrivateAssets="all"
+
+    />
+  </ItemGroup>
+  <Target Name="CopyAndPackageMod" AfterTargets="PostBuildEvent">
+    <ItemGroup>
+      <Binaries Include="$(TargetPath)" />
+      <Binaries Include="$(TargetDir)/$(TargetName).pdb" />
+    </ItemGroup>
+    <Copy
+      SourceFiles="@(Binaries)"
+      DestinationFolder="$(SilksongFolder)/BepInEx/plugins/silksong-modding-$(AssemblyTitle)"
+      Condition="'$(SilksongFolder)' != '' And Exists('$(SilksongFolder)')"
+    />
+    <RemoveDir Directories="$(ThunderstoreDir)/tmp/plugins;$(ThunderstoreDir)/dist" />
+    <MakeDir Directories="$(ThunderstoreDir)/tmp/plugins" />
+    <Copy
+      SourceFiles="@(Binaries)"
+      DestinationFolder="$(ThunderstoreDir)/tmp/plugins"
+    />
+  </Target>
+  <Target Name="Husky" BeforeTargets="Restore;CollectPackageReferences" Condition="'$(HUSKY)' != 0">
+    <Exec Command="dotnet tool restore" StandardOutputImportance="Low" StandardErrorImportance="High" />
+    <Exec Command="dotnet husky install" StandardOutputImportance="Low" StandardErrorImportance="High" WorkingDirectory="$(RepoRoot)" />
+  </Target>
+
+</Project>

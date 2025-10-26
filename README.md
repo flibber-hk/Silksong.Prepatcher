@@ -1,3 +1,3 @@
-# Silksong Prepatcher
+# PrepatcherPlugin
 
-Collection of useful preloader patchers for Hollow Knight: Silksong.
+Plugin associated with the Silksong Prepatcher.
