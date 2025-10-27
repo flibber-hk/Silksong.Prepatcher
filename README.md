@@ -1,4 +1,4 @@
-# Silksong Prepatcher
+# PrepatcherPlugin
 
 Prepatcher with general purpose assembly modifications for Hollow Knight: Silksong.
 
