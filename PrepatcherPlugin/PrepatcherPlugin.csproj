@@ -12,6 +12,7 @@
     <AnalysisMode>recommended</AnalysisMode>
     <!-- Ignore warning about processor architecture mismatch with PlayMaker ConditionalExpression -->
     <NoWarn>$(NoWarn);MSB3270</NoWarn>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <RestorePackagesWithLockFile>True</RestorePackagesWithLockFile>
     <!-- CI environment variable is automatically set by GitHub actions -->
     <RestoreLockedMode Condition="'$(CI)' == 'true'">True</RestoreLockedMode>
@@ -19,11 +20,11 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <!--Shortens and anonymizes paths in debug symbols relative to the project directory. Breakpoints will not work, however.-->
     <PathMap Condition="'$(Configuration)' == 'Release'">$(MSBuildProjectDirectory)=/</PathMap>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageIcon>icon.png</PackageIcon>
-    <RepositoryUrl>https://github.com/silksong-modding/PrepatcherPlugin</RepositoryUrl>
     <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..'))</RepoRoot>
     <ThunderstoreDir>$(RepoRoot)/thunderstore</ThunderstoreDir>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
+    <RepositoryUrl>https://github.com/silksong-modding/Silksong.Prepatcher</RepositoryUrl>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="BepInEx.Analyzers" Version="1.0.8" PrivateAssets="all" />
@@ -31,34 +32,22 @@
     <PackageReference Include="HarmonyX" Version="2.9.0" />
     <PackageReference Include="Hamunii.BepInEx.AutoPlugin" Version="2.0.1" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Unity.Analyzers" Version="1.25.0" PrivateAssets="all" />
-    <PackageReference
-      Include="UnityEngine.Modules"
-      Version="6000.0.50"
-      IncludeAssets="compile"
-    />
+    <PackageReference Include="UnityEngine.Modules" Version="6000.0.50" IncludeAssets="compile" />
     <!--If you're unable resolve this dependency, check that you're using the nuget v3 package feed instead of v2.-->
-    <PackageReference
-      Include="Silksong.GameLibs"
-      Version="*-*"
-      PrivateAssets="all"
-
-    />
+    <PackageReference Include="Silksong.GameLibs" Version="*-*" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(RepoRoot)/README.md" Pack="True" PackagePath="README.md" />
+    <None Include="$(RepoRoot)/thunderstore/icon.png" Pack="True" PackagePath="icon.png" />
   </ItemGroup>
   <Target Name="CopyAndPackageMod" AfterTargets="PostBuildEvent">
     <ItemGroup>
       <Binaries Include="$(TargetPath)" />
       <Binaries Include="$(TargetDir)/$(TargetName).pdb" />
     </ItemGroup>
-    <Copy
-      SourceFiles="@(Binaries)"
-      DestinationFolder="$(SilksongFolder)/BepInEx/plugins/silksong-modding-$(AssemblyTitle)"
-      Condition="'$(SilksongFolder)' != '' And Exists('$(SilksongFolder)')"
-    />
+    <Copy SourceFiles="@(Binaries)" DestinationFolder="$(SilksongFolder)/BepInEx/plugins/silksong-modding-$(AssemblyTitle)" Condition="'$(SilksongFolder)' != '' And Exists('$(SilksongFolder)')" />
     <RemoveDir Directories="$(ThunderstoreDir)/tmp/plugins;$(ThunderstoreDir)/dist" />
     <MakeDir Directories="$(ThunderstoreDir)/tmp/plugins" />
-    <Copy
-      SourceFiles="@(Binaries)"
-      DestinationFolder="$(ThunderstoreDir)/tmp/plugins"
-    />
+    <Copy SourceFiles="@(Binaries)" DestinationFolder="$(ThunderstoreDir)/tmp/plugins" />
   </Target>
 </Project>
